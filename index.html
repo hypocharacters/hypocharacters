@@ -255,4 +255,230 @@
                         <label for="custom-email">Email Address</label>
                         <input type="email" id="custom-email" required>
                     </div>
-                    <div class="form-group
+                    <div class="form-group">
+                        <label for="custom-details">Request Details (e.g., "Otago Boys' Rugby, No. 10")</label>
+                        <textarea id="custom-details" rows="4" required></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">Submit Request</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- CHARACTER DATA ARRAY (11 Characters - FINAL NAMES) ---
+        const characters = [
+            { id: 1, name: "M1 - Basketball Player", description: "Auckland City University Team", image: "master-basketball-01.png", tags: ["Auckland", "Basketball", "Sport", "Male", "University"] },
+            { id: 13, name: "M1 - Boxing", description: "Gym Gear and Gloves", image: "master-boxing-01.png", tags: ["Boxing", "Sport", "Male"] },
+            { id: 5, name: "M1 - Rugby Union", description: "Wellington Hurricanes Academy", image: "master-rugby-01.png", tags: ["Wellington", "Rugby", "Sport", "Male"] },
+            { id: 6, name: "M1 - Cricket", description: "Canterbury Cricket Uniform", image: "master-cricket-01.png", tags: ["Christchurch", "Canterbury", "Cricket", "Sport", "Male"] },
+            { id: 8, name: "M1 - Baseball", description: "Auckland Aces Baseball", image: "master-baseball-01.png", tags: ["Auckland", "Baseball", "Sport", "Male"] },
+            { id: 9, name: "M1 - Formula 1", description: "Racing Driver Jumpsuit", image: "master-f1-01.png", tags: ["Motorsport", "F1", "Casual", "Male"] },
+            { id: 10, name: "M1 - Football (Soccer)", description: "NZ National Team Kit", image: "master-football-01.png", tags: ["Football", "Soccer", "Sport", "Male"] },
+            { id: 14, name: "M1 - Karate", description: "Martial Arts Gi", image: "master-karate-01.png", tags: ["Karate", "Martial Arts", "Sport", "Male"] },
+            { id: 11, name: "M1 - Rugby League", description: "Warriors Team Jersey", image: "master-league-01.png", tags: ["Auckland", "League", "Rugby League", "Sport", "Male"] },
+            { id: 15, name: "M1 - Swimming", description: "Speedo and Cap", image: "master-swimming-01.png", tags: ["Swimming", "Sport", "Male"] },
+            { id: 12, name: "M1 - Tennis", description: "Professional Tennis Whites", image: "master-tennis-01.png", tags: ["Tennis", "Sport", "Male"] },
+        ];
+
+        // --- Configuration ---
+        const FORM_SUBMIT_EMAIL = "hypocharacters@icloud.com"; 
+
+        // --- DOM Elements ---
+        const grid = document.getElementById('character-grid');
+        const searchInput = document.getElementById('search-input');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const customBtn = document.getElementById('custom-btn');
+        const downloadModal = document.getElementById('details-modal');
+        const customModal = document.getElementById('custom-modal');
+        const closeDownloadModalBtn = document.getElementById('close-download-modal-btn');
+        const closeCustomModalBtn = document.getElementById('close-custom-modal-btn');
+        const finalDownloadBtn = document.getElementById('final-download-btn');
+        const customForm = document.getElementById('custom-request-form');
+        
+        let currentCharacterImage = ''; 
+        let currentFilter = 'all';
+
+        // --- CORE FUNCTIONS ---
+
+        function renderCharacters(filteredCharacters) {
+            grid.innerHTML = ''; 
+            
+            if (filteredCharacters.length === 0) {
+                grid.innerHTML = '<p style="color: #9ca3af;">No characters match your search criteria.</p>';
+                return;
+            }
+
+            filteredCharacters.forEach(character => {
+                const isRealImage = character.image.includes('master-');
+
+                const cardHtml = `
+                    <div class="character-card" data-character-id="${character.id}">
+                        ${isRealImage 
+                            ? `<img src="${character.image}" alt="${character.name}">`
+                            : `<div class="card-placeholder" style="height: 180px; display: flex; align-items: center; justify-content: center; background-color: #4b5563; color: #9ca3af; font-weight: bold;">[Image: ${character.name.split(' - ')[0]}]</div>`
+                        }
+                        <div class="card-content">
+                            <h3 style="font-size: 1rem; font-weight: bold; margin-bottom: 5px;">${character.name}</h3>
+                            <p style="font-size: 0.875rem; color: #9ca3af; margin-bottom: 10px;">${character.description}</p>
+                            
+                            <button class="download-btn">
+                                <svg style="width: 20px; height: 20px; margin-right: 5px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                Download Free
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        }
+
+        function filterCharacters() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            
+            const filtered = characters.filter(character => {
+                const matchesSearch = character.name.toLowerCase().includes(searchTerm) || 
+                                    character.description.toLowerCase().includes(searchTerm) || 
+                                    character.tags.some(tag => tag.toLowerCase().includes(searchTerm));
+
+                const matchesFilter = currentFilter === 'all' || 
+                                      character.tags.includes(currentFilter);
+                
+                return matchesSearch && matchesFilter;
+            });
+
+            renderCharacters(filtered);
+        }
+
+        function openDownloadModal(character) {
+            document.getElementById('modal-title').textContent = character.name;
+            const displayImage = character.image.includes('master-') ? character.image : 'master-basketball-01.png';
+            document.getElementById('modal-image').src = displayImage; 
+            currentCharacterImage = displayImage; 
+            downloadModal.style.display = 'flex';
+        }
+
+        function closeDownloadModal() {
+            downloadModal.style.display = 'none';
+        }
+        
+        function openCustomModal() {
+            customModal.style.display = 'flex';
+        }
+
+        function closeCustomModal() {
+            customModal.style.display = 'none';
+        }
+
+        function submitForm(data) {
+            const url = `https://formsubmit.co/ajax/${FORM_SUBMIT_EMAIL}`; 
+            
+            fetch(url, {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("✅ Success! Your request has been sent. We will contact you soon with a quote.");
+                } else {
+                    alert("❌ Submission Failed. Please try again.");
+                }
+                customForm.reset();
+                closeCustomModal();
+            })
+            .catch(error => {
+                console.error('Error submitting form:', error);
+                alert("❌ An error occurred during submission. Please check your internet connection.");
+                closeCustomModal();
+            });
+        }
+
+        // --- EVENT LISTENERS ---
+
+        searchInput.addEventListener('input', filterCharacters);
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => {
+                    b.classList.remove('active');
+                    b.style.backgroundColor = '#4b5563'; 
+                });
+                btn.classList.add('active');
+                btn.style.backgroundColor = '#3b82f6'; 
+                currentFilter = btn.getAttribute('data-filter');
+                filterCharacters();
+            });
+        });
+
+        grid.addEventListener('click', (event) => {
+            const card = event.target.closest('.character-card');
+            if (card) {
+                const id = parseInt(card.getAttribute('data-character-id'));
+                const character = characters.find(c => c.id === id);
+                if (character) {
+                    openDownloadModal(character);
+                }
+            }
+        });
+        
+        closeDownloadModalBtn.addEventListener('click', closeDownloadModal);
+        downloadModal.addEventListener('click', (event) => {
+            if (event.target === downloadModal) {
+                closeDownloadModal();
+            }
+        });
+
+        finalDownloadBtn.addEventListener('click', () => {
+            if (currentCharacterImage) {
+                const a = document.createElement('a');
+                a.href = currentCharacterImage;
+                a.download = currentCharacterImage.split('/').pop(); 
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                alert(`Downloading ${a.download}...`);
+                closeDownloadModal();
+            }
+        });
+        
+        customBtn.addEventListener('click', openCustomModal);
+        closeCustomModalBtn.addEventListener('click', closeCustomModal);
+        customModal.addEventListener('click', (event) => {
+            if (event.target === customModal) {
+                closeCustomModal();
+            }
+        });
+
+        customForm.addEventListener('submit', (event) => {
+            event.preventDefault(); 
+            
+            const name = document.getElementById('custom-name').value;
+            const email = document.getElementById('custom-email').value;
+            const details = document.getElementById('custom-details').value;
+
+            const submissionData = {
+                "_subject": "NEW Custom Character Request (NZ App)", 
+                "Customer Name": name,
+                "Customer Email": email, 
+                "Request Details": details,
+                "Source": "NZ Character Gallery App"
+            };
+
+            submitForm(submissionData);
+        });
+
+
+        // Initial render when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCharacters(characters);
+        });
+        
+    </script>
+</body>
+</html>
